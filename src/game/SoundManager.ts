@@ -159,6 +159,56 @@ export class SoundManager {
     osc.start();
     osc.stop(this.ctx.currentTime + 0.05);
   }
+
+  playMetalHit() {
+    // Metal clang sound for Head
+    if (this.ctx.state === 'suspended') this.ctx.resume();
+    
+    // Multiple oscillators for metallic ring
+    const freqs = [800, 1200, 1500];
+    
+    freqs.forEach(f => {
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.connect(gain);
+        gain.connect(this.masterGain);
+        
+        osc.type = 'triangle'; // Triangle is good for metal
+        osc.frequency.setValueAtTime(f, this.ctx.currentTime);
+        // Slight detune for dissonance
+        osc.detune.value = Math.random() * 50; 
+        
+        gain.gain.setValueAtTime(0.05, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.3);
+        
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.3);
+    });
+  }
+
+  playLevelUp() {
+    if (this.ctx.state === 'suspended') this.ctx.resume();
+    
+    const now = this.ctx.currentTime;
+    const notes = [523.25, 659.25, 783.99, 1046.50]; // C Major
+    
+    notes.forEach((freq, i) => {
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.connect(gain);
+        gain.connect(this.masterGain);
+        
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, now + i * 0.1);
+        
+        gain.gain.setValueAtTime(0, now + i * 0.1);
+        gain.gain.linearRampToValueAtTime(0.2, now + i * 0.1 + 0.05);
+        gain.gain.linearRampToValueAtTime(0, now + i * 0.1 + 0.4);
+        
+        osc.start(now + i * 0.1);
+        osc.stop(now + i * 0.1 + 0.4);
+    });
+  }
   
   startBGM() {
       if (this.isPlayingBgm) return;

@@ -2,7 +2,7 @@ import { Game } from './Game';
 import { GameConfig } from './Config';
 import { Assets } from './Assets';
 
-export type BuffType = 'NONE' | 'ADD_PLANE' | 'ATTACK_SPEED' | 'ATTACK_POWER';
+export type BuffType = 'NONE' | 'ADD_PLANE' | 'ATTACK_SPEED' | 'ATTACK_POWER' | 'HEAL' | 'DEBUFF_SLOW';
 
 export class Block {
   game: Game;
@@ -33,6 +33,8 @@ export class Block {
     if (this.buff === 'ADD_PLANE') return '#00ff00';
     if (this.buff === 'ATTACK_SPEED') return '#00ffff';
     if (this.buff === 'ATTACK_POWER') return '#ff0000';
+    if (this.buff === 'HEAL') return '#ff69b4'; // Pink for Heal
+    if (this.buff === 'DEBUFF_SLOW') return '#808080'; // Grey for Slow Debuff
     return '#ffffff';
   }
 

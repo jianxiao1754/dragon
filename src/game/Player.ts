@@ -11,12 +11,15 @@ export class Player {
   height: number;
   color: string;
   speed: number;
+  hp: number = GameConfig.PLAYER_MAX_HP;
+  maxHp: number = GameConfig.PLAYER_MAX_HP;
   bullets: Bullet[] = [];
   fireTimer: number = 0;
   fireInterval: number = GameConfig.PLAYER_BASE_FIRE_INTERVAL;
   damage: number = GameConfig.PLAYER_BASE_DAMAGE;
   doubleShot: boolean = false; // Buff: Adds a second plane/gun
   attackSpeedBuff: number = 1;
+  slowDebuffTimer: number = 0;
 
   constructor(game: Game) {
     this.game = game;
@@ -26,6 +29,7 @@ export class Player {
     this.y = this.game.height - GameConfig.PLAYER_START_Y_OFFSET;
     this.color = GameConfig.PLAYER_COLOR;
     this.speed = GameConfig.PLAYER_SPEED;
+    this.hp = this.maxHp;
   }
 
   update(_deltaTime: number) {
@@ -35,14 +39,39 @@ export class Player {
     if (this.y < 0) this.y = this.height / 2;
     if (this.y > this.game.height - this.height / 2) this.y = this.game.height - this.height / 2;
 
+    // Handle Debuffs
+    let currentFireInterval = this.fireInterval / this.attackSpeedBuff;
+    if (this.slowDebuffTimer > 0) {
+        this.slowDebuffTimer--;
+        currentFireInterval *= 2; // Fire 2x slower
+    }
+
     // Auto shoot
     if (this.fireTimer <= 0) {
       this.shoot();
-      this.fireTimer = this.fireInterval / this.attackSpeedBuff;
+      this.fireTimer = currentFireInterval;
     } else {
       this.fireTimer--;
     }
   }
+
+  takeDamage(amount: number) {
+      this.hp -= amount;
+      if (this.hp <= 0) {
+          this.hp = 0;
+      }
+      // TODO: Play damage sound?
+  }
+
+  heal(amount: number) {
+      this.hp += amount;
+      if (this.hp > this.maxHp) this.hp = this.maxHp;
+  }
+
+  applySlowDebuff(frames: number) {
+      this.slowDebuffTimer = frames;
+  }
+
 
   shoot() {
     this.game.soundManager.playShoot();
@@ -92,6 +121,25 @@ export class Player {
         ctx.drawImage(Assets.PlayerPlane, -this.width - 10, 0, this.width/2, this.height/2);
         ctx.drawImage(Assets.PlayerPlane, this.width/2 + 10, 0, this.width/2, this.height/2);
         ctx.globalAlpha = 1.0;
+    }
+    
+    // Draw Debuff Visuals
+    if (this.slowDebuffTimer > 0) {
+        // Draw snail icon or blue/grey overlay
+        ctx.beginPath();
+        ctx.arc(0, 0, this.width/2 + 5, 0, Math.PI * 2);
+        ctx.strokeStyle = '#808080';
+        ctx.lineWidth = 3;
+        ctx.stroke();
+        
+        ctx.fillStyle = 'rgba(128, 128, 128, 0.3)';
+        ctx.fill();
+        
+        // Text
+        ctx.fillStyle = 'white';
+        ctx.font = '12px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText("SLOW", 0, -this.height/2 - 10);
     }
     
     ctx.restore();

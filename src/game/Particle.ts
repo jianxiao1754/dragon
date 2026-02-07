@@ -3,6 +3,12 @@ export class Particle {
   y: number;
   vx: number;
   vy: number;
+  // Aliases for compatibility if needed, or just use vx/vy
+  get speedX() { return this.vx; }
+  set speedX(v: number) { this.vx = v; }
+  get speedY() { return this.vy; }
+  set speedY(v: number) { this.vy = v; }
+  
   life: number;
   color: string;
   size: number;

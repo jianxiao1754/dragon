@@ -11,9 +11,11 @@ export class Dragon {
   segmentSpacing: number = GameConfig.DRAGON_SEGMENT_SPACING;
   level: number = 1;
   headDead: boolean = false;
+  centerX: number;
   
   constructor(game: Game) {
     this.game = game;
+    this.centerX = game.width / 2;
     this.init(1);
   }
 
@@ -25,15 +27,29 @@ export class Dragon {
     this.speed = GameConfig.DRAGON_START_SPEED + (level * GameConfig.DRAGON_SPEED_INC_PER_LEVEL);
     
     // Initialize head position above screen
-    let startX = this.game.width / 2;
+    let startX = this.centerX;
     let startY = -100;
     
     // Create Head
-    const headHp = GameConfig.HEAD_HP_BASE + (level * GameConfig.HEAD_HP_PER_LEVEL);
+    // Exponential HP: Base * Factor^(Level-1)
+    const headHp = Math.floor(GameConfig.HEAD_HP_BASE * Math.pow(GameConfig.HEAD_HP_GROWTH_FACTOR, level - 1));
     this.blocks.push(new Block(this.game, startX, startY, headHp, 'NONE', true));
 
+    // Calculate Length and HP scaling
+    let length = GameConfig.DRAGON_BASE_LENGTH + level * GameConfig.DRAGON_LENGTH_INC_PER_LEVEL;
+    let hpMultiplier = 1;
+    
+    if (length > GameConfig.DRAGON_MAX_LENGTH) {
+        // Cap length, but increase HP for every level that would have added length
+        // Rough approximation: excess length contributes to HP
+        const excessLength = length - GameConfig.DRAGON_MAX_LENGTH;
+        length = GameConfig.DRAGON_MAX_LENGTH;
+        
+        // Every "missed" segment adds roughly 5% HP to remaining segments to compensate
+        hpMultiplier = 1 + (excessLength * 0.05);
+    }
+
     // Create body segments
-    const length = GameConfig.DRAGON_BASE_LENGTH + level * GameConfig.DRAGON_LENGTH_INC_PER_LEVEL;
     for (let i = 1; i < length; i++) {
         // Determine if this block has a buff
         let buff: BuffType = 'NONE';
@@ -41,10 +57,17 @@ export class Dragon {
             const rand = Math.random();
             if (rand < GameConfig.BUFF_CHANCE_ADD_PLANE) buff = 'ADD_PLANE';
             else if (rand < GameConfig.BUFF_CHANCE_ATTACK_SPEED) buff = 'ATTACK_SPEED';
+            else if (rand < GameConfig.BUFF_CHANCE_HEAL) buff = 'HEAL';
+            else if (rand < GameConfig.BUFF_CHANCE_DEBUFF_SLOW) buff = 'DEBUFF_SLOW';
             else buff = 'ATTACK_POWER';
         }
 
-        const hp = Math.floor(Math.random() * 20) + GameConfig.BLOCK_HP_MIN + (level * GameConfig.BLOCK_HP_PER_LEVEL);
+        let hp = Math.floor(Math.random() * 20) + GameConfig.BLOCK_HP_MIN;
+        // Exponential growth for body blocks too
+        hp = Math.floor(hp * Math.pow(GameConfig.BLOCK_HP_GROWTH_FACTOR, level - 1));
+        
+        hp = Math.floor(hp * hpMultiplier); // Apply multiplier for capped length
+        
         this.blocks.push(new Block(this.game, startX, startY - (i * this.segmentSpacing), hp, buff, false));
     }
 
@@ -59,11 +82,22 @@ export class Dragon {
 
     // Move Head Logic
     this.angle += GameConfig.DRAGON_OSCILLATION_SPEED + (this.level * GameConfig.DRAGON_OSCILLATION_INC_PER_LEVEL);
-    const headX = (this.game.width / 2) + Math.sin(this.angle) * (this.game.width / 3);
+    
+    // Irregular Movement Logic to prevent camping
+    // Combine two sine waves with different frequencies
+    const wave1 = Math.sin(this.angle) * (this.game.width / 3);
+    const wave2 = Math.sin(this.angle * 2.3) * (this.game.width / 10); // Secondary wave
+    
+    // Add a slow drift to the center point if single dragon, or just rely on the complex wave
+    // For now, complex wave is usually enough.
+    
+    const headX = this.centerX + wave1 + wave2;
+    const clampedHeadX = Math.max(50, Math.min(this.game.width - 50, headX));
+
     const headY = this.path[0].y + this.speed;
 
     // Add new head position to path history
-    this.path.unshift({ x: headX, y: headY });
+    this.path.unshift({ x: clampedHeadX, y: headY });
 
     // Clean up very old path points
     if (this.path.length > this.blocks.length * this.segmentSpacing * 5) {
@@ -114,12 +148,17 @@ export class Dragon {
 
     // Check if head reaches bottom
     // Find head block
+    /* 
+    Legacy logic removed:
     const currentHead = this.blocks.find(b => b.isHead);
     if (currentHead) {
         if (currentHead.y > this.game.height) {
             this.game.triggerGameOver();
         }
     }
+    This is now handled in Game.ts handleDragonEscape() which correctly deducts HP
+    instead of instant Game Over.
+    */
   }
 
   draw(ctx: CanvasRenderingContext2D) {
