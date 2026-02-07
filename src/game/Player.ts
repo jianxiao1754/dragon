@@ -28,7 +28,7 @@ export class Player {
     this.speed = GameConfig.PLAYER_SPEED;
   }
 
-  update(deltaTime: number) {
+  update(_deltaTime: number) {
     // Movement is handled by mouse/touch in Game class, but we can clamp here
     if (this.x < this.width / 2) this.x = this.width / 2;
     if (this.x > this.game.width - this.width / 2) this.x = this.game.width - this.width / 2;

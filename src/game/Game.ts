@@ -1,7 +1,7 @@
 import { Player } from './Player';
 import { Bullet } from './Bullet';
 import { Dragon } from './Dragon';
-import { Block, type BuffType } from './Block';
+import { type BuffType } from './Block';
 import { SoundManager } from './SoundManager';
 import { Particle } from './Particle';
 import { Background } from './Background';
