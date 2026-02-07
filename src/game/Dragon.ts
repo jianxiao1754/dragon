@@ -87,7 +87,11 @@ export class Dragon {
     if (this.headDead) return;
 
     // Move Head Logic
-    this.angle += GameConfig.DRAGON_OSCILLATION_SPEED + (this.level * GameConfig.DRAGON_OSCILLATION_INC_PER_LEVEL);
+    let oscSpeed = GameConfig.DRAGON_OSCILLATION_SPEED + (this.level * GameConfig.DRAGON_OSCILLATION_INC_PER_LEVEL);
+    if (oscSpeed > GameConfig.DRAGON_MAX_OSCILLATION_SPEED) {
+        oscSpeed = GameConfig.DRAGON_MAX_OSCILLATION_SPEED;
+    }
+    this.angle += oscSpeed;
     
     // Irregular Movement Logic to prevent camping
     // Combine two sine waves with different frequencies
@@ -101,11 +105,13 @@ export class Dragon {
     
     // Smooth movement / Limit lateral speed
     // Max lateral movement per frame (e.g., 5 pixels)
-    const MAX_LATERAL_SPEED = 3 + (this.level * 0.1); 
+    let maxLateralSpeed = 3 + (this.level * 0.1);
+    if (maxLateralSpeed > 10) maxLateralSpeed = 10;
+    
     const dx = targetHeadX - this.currentHeadX;
     
-    if (Math.abs(dx) > MAX_LATERAL_SPEED) {
-        this.currentHeadX += Math.sign(dx) * MAX_LATERAL_SPEED;
+    if (Math.abs(dx) > maxLateralSpeed) {
+        this.currentHeadX += Math.sign(dx) * maxLateralSpeed;
     } else {
         this.currentHeadX = targetHeadX;
     }

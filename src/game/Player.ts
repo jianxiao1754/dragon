@@ -118,11 +118,11 @@ export class Player {
        this.game.bullets.push(new Bullet(this.x, this.y - 20, boostDamage));
        // Left Spread
        const leftBullet = new Bullet(this.x - 10, this.y - 20, boostDamage);
-       leftBullet.vx = -1;
+       leftBullet.vx = -2; // Wider spread (was -1)
        this.game.bullets.push(leftBullet);
        // Right Spread
        const rightBullet = new Bullet(this.x + 10, this.y - 20, boostDamage);
-       rightBullet.vx = 1;
+       rightBullet.vx = 2; // Wider spread (was 1)
        this.game.bullets.push(rightBullet);
        
        if (this.doubleShot) {

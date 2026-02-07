@@ -6,6 +6,7 @@ export class Bullet {
   y: number;
   radius: number;
   speed: number;
+  vx: number = 0;
   damage: number;
   color: string;
   markedForDeletion: boolean = false;
@@ -22,6 +23,7 @@ export class Bullet {
   }
 
   update() {
+    this.x += this.vx;
     this.y -= this.speed;
     if (this.y < 0) {
       this.markedForDeletion = true;

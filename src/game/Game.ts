@@ -192,7 +192,7 @@ export class Game {
   triggerVictory() {
       this.gameOver = true;
       this.gameOverElement.classList.remove('hidden');
-      this.gameOverElement.innerHTML = `<h1>VICTORY!</h1><p>Score: ${this.score}</p><button id="restart-btn">Play Again</button>`;
+      this.gameOverElement.innerHTML = `<h1>胜利！</h1><p>得分: ${this.score}</p><button id="restart-btn">再玩一次</button>`;
       
       // Re-bind restart button for victory screen
       const newBtn = this.gameOverElement.querySelector('#restart-btn');
@@ -205,7 +205,7 @@ export class Game {
   triggerGameOver() {
       this.gameOver = true;
       this.gameOverElement.classList.remove('hidden');
-      this.gameOverElement.innerHTML = `<h1>CHALLENGE FAILED</h1><p>Score: ${this.score}</p><button id="restart-btn">Try Again</button>`;
+      this.gameOverElement.innerHTML = `<h1>挑战失败</h1><p>得分: ${this.score}</p><button id="restart-btn">重试</button>`;
       
       // Re-bind restart button
       const newBtn = this.gameOverElement.querySelector('#restart-btn');
@@ -328,8 +328,8 @@ export class Game {
     this.checkCollisions();
 
     // UI Update
-    if (this.scoreDisplay) this.scoreDisplay.innerText = `Score: ${this.score}`;
-    if (this.levelDisplay) this.levelDisplay.innerText = `Level: ${this.level}`;
+    if (this.scoreDisplay) this.scoreDisplay.innerText = `得分: ${this.score}`;
+    if (this.levelDisplay) this.levelDisplay.innerText = `关卡: ${this.level}`;
     
     // Update HP Bar
     if (this.hpBar && this.hpText) {
@@ -359,7 +359,7 @@ export class Game {
             statusHtml += `
                 <div class="status-item" style="border-color: #00FFFF; color: #00FFFF; position: relative;">
                     <div class="status-icon" style="background: rgba(0, 255, 255, 0.2);">🛡️</div>
-                    <span>SHIELD</span>
+                    <span>护盾</span>
                     <div style="position: absolute; bottom: -5px; right: -5px; background: #00FFFF; color: #000; border-radius: 50%; width: 16px; height: 16px; font-size: 10px; display: flex; align-items: center; justify-content: center; font-weight: bold;">
                         ${this.player.shieldCount}
                     </div>
@@ -373,7 +373,7 @@ export class Game {
             statusHtml += `
                 <div class="status-item" style="border-color: #FFD700; color: #FFD700;">
                     <div class="status-icon" style="background: rgba(255, 215, 0, 0.2);">🌟</div>
-                    <span>INVINCIBLE ${seconds}s</span>
+                    <span>无敌 ${seconds}秒</span>
                 </div>
             `;
         }
@@ -384,7 +384,7 @@ export class Game {
             statusHtml += `
                 <div class="status-item" style="border-color: #FF00FF; color: #FF00FF;">
                     <div class="status-icon" style="background: rgba(255, 0, 255, 0.2);">🚀</div>
-                    <span>BOOST ${seconds}s</span>
+                    <span>火力增强 ${seconds}秒</span>
                 </div>
             `;
         }
@@ -395,7 +395,7 @@ export class Game {
             statusHtml += `
                 <div class="status-item" style="border-color: #FFA500; color: #FFA500;">
                     <div class="status-icon" style="background: rgba(255, 165, 0, 0.2);">🐌</div>
-                    <span>SLOWED ${seconds}s</span>
+                    <span>减速 ${seconds}秒</span>
                 </div>
             `;
         }
@@ -486,14 +486,8 @@ export class Game {
              return; 
          }
 
-         // If invincible (shield broken), skip collision effects (visual/sound) but apply damage
+         // If invincible (shield broken), skip collision effects (visual/sound) and damage
          if (this.player.invincibleTimer > 0) {
-             // Apply damage periodically
-             // User requested HP deduction during this phase
-             // Deduct damage every 20 frames (approx 3 times/sec)
-             if (this.player.invincibleTimer % 20 === 0) {
-                 this.player.takeDamage(maxDamage);
-             }
              return;
          }
 

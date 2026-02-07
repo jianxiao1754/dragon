@@ -17,19 +17,20 @@ export const GameConfig = {
     BULLET_RADIUS: 5, // 子弹半径
     BULLET_SPEED: 15, // 子弹飞行速度
     BULLET_COLOR: '#00ff00', // 子弹颜色
-    BULLET_PENETRATION: 1, // 子弹穿透次数
+    BULLET_PENETRATION: 5, // 子弹穿透次数
     BULLET_DAMAGE_DECAY: 0.5, // 穿透后的伤害衰减系数
     
     // 龙（敌人）设置
     DRAGON_START_SPEED: 0.5, // 龙的初始移动速度
-    DRAGON_SPEED_INC_PER_LEVEL: 0.1, // 每升一级增加的移动速度
-    DRAGON_MAX_SPEED: 8.0, // 龙的最大移动速度限制
+    DRAGON_SPEED_INC_PER_LEVEL: 0.01, // 每升一级增加的移动速度
+    DRAGON_MAX_SPEED: 4.0, // 龙的最大移动速度限制
     DRAGON_OSCILLATION_SPEED: 0.005, // 龙左右摆动的频率
     DRAGON_OSCILLATION_INC_PER_LEVEL: 0.001, // 每升一级增加的摆动频率
+    DRAGON_MAX_OSCILLATION_SPEED: 0.04, // 龙左右摆动的最大频率限制
     DRAGON_SEGMENT_SPACING: 30, // 龙身体每节之间的间距
     DRAGON_BASE_LENGTH: 15, // 龙的基础长度（节数）
     DRAGON_LENGTH_INC_PER_LEVEL: 2, // 每升一级增加的长度
-    DRAGON_MAX_LENGTH: 60, // 龙的最大长度限制
+    DRAGON_MAX_LENGTH: 45, // 龙的最大长度限制
     GAME_WIN_LEVEL: 300, // 游戏胜利关卡
     DRAGON_SPAWN_INTERVAL_LEVELS: 50, // 每隔多少关增加一条龙
 
