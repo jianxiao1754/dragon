@@ -89,6 +89,39 @@
         white-space: nowrap;
       }
 
+      #status-container {
+        position: absolute;
+        top: 150px;
+        left: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        pointer-events: none;
+      }
+
+      .status-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        background: rgba(0, 0, 0, 0.5);
+        padding: 8px;
+        border-radius: 8px;
+        color: #fff;
+        font-weight: bold;
+        font-size: 14px;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+      }
+
+      .status-icon {
+        width: 24px;
+        height: 24px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        border-radius: 50%;
+        font-size: 16px;
+      }
+
       #game-over {
         position: absolute;
         top: 50%;
@@ -148,6 +181,10 @@
         <div class="hud-container">
             <div id="score-display" class="hud-item">Score: 0</div>
             <div id="level-display" class="hud-item">Level: 1</div>
+        </div>
+        
+        <div id="status-container">
+            <!-- Status items will be injected here -->
         </div>
         
         <div id="hp-text" class="hp-text">100 / 100</div>

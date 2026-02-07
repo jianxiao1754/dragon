@@ -23,6 +23,7 @@ export const GameConfig = {
     // 龙（敌人）设置
     DRAGON_START_SPEED: 0.5, // 龙的初始移动速度
     DRAGON_SPEED_INC_PER_LEVEL: 0.1, // 每升一级增加的移动速度
+    DRAGON_MAX_SPEED: 8.0, // 龙的最大移动速度限制
     DRAGON_OSCILLATION_SPEED: 0.005, // 龙左右摆动的频率
     DRAGON_OSCILLATION_INC_PER_LEVEL: 0.001, // 每升一级增加的摆动频率
     DRAGON_SEGMENT_SPACING: 30, // 龙身体每节之间的间距
@@ -41,6 +42,20 @@ export const GameConfig = {
     HEAD_HP_BASE: 500, // 龙头基础生命值
     HEAD_HP_GROWTH_FACTOR: 1.1, // 龙头生命值每级增长系数 (指数增长)
     
+    // 道具（Item）设置
+    ITEM_SPAWN_INTERVAL_MIN: 600, // 道具生成最小间隔（帧，10秒）
+    ITEM_SPAWN_INTERVAL_MAX: 1200, // 道具生成最大间隔（帧，20秒）
+    ITEM_DROP_CHANCE_FROM_HEAD: 0.3, // 击败龙头掉落道具的概率
+    
+    // 道具持续时间（帧）
+    ITEM_DURATION_WEAPON_BOOST: 600, // 武器增强持续时间（10秒）
+    ITEM_DURATION_INVINCIBLE: 300, // 护盾破碎后无敌时间（5秒）
+    ITEM_DURATION_SLOW: 300, // 减速Debuff持续时间（5秒）
+    
+    // 伤害设置
+    DAMAGE_FROM_HEAD_COLLISION: 10, // 撞击龙头扣除的生命值
+    DAMAGE_FROM_BODY_COLLISION: 1, // 撞击龙身扣除的生命值 (默认)
+
     // Buff（增益）设置
     BUFF_CHANCE_ADD_PLANE: 0.2, // 掉落“增加副机”Buff的概率
     BUFF_CHANCE_ATTACK_SPEED: 0.4, // 掉落“增加攻速”Buff的概率
@@ -48,7 +63,12 @@ export const GameConfig = {
     BUFF_CHANCE_DEBUFF_SLOW: 0.8, // 掉落“减速(负面)”的概率
     // 剩余概率 (0.8-1.0) 为掉落“增加攻击力”Buff
     BUFF_FREQUENCY: 4, // 每隔多少个身体块出现一个Buff
-    HEAL_AMOUNT: 20, // 回血量
+    
+    // Buff 数值成长
+    HEAL_AMOUNT_BASE: 20, // 基础回血量
+    HEAL_GROWTH_FACTOR: 1.02, // 回血量随关卡指数增长
+    ATTACK_POWER_BASE: 2, // 基础攻击力增加值
+    ATTACK_POWER_GROWTH_FACTOR: 1.02, // 攻击力增加随关卡指数增长
     
     // 背景与天气设置
     SCROLL_SPEED: 2, // 背景滚动速度

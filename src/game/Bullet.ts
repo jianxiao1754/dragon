@@ -46,10 +46,29 @@ export class Bullet {
   }
 
   draw(ctx: CanvasRenderingContext2D) {
+    ctx.save();
+    
+    // Draw trail/glow
+    ctx.shadowBlur = 10;
+    ctx.shadowColor = this.color;
+    
+    // Capsule shape
     ctx.beginPath();
-    ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-    ctx.fillStyle = this.color;
+    ctx.moveTo(this.x - this.radius, this.y);
+    ctx.arc(this.x, this.y, this.radius, Math.PI, 0); // Top arc
+    ctx.lineTo(this.x + this.radius, this.y + this.radius * 3);
+    ctx.arc(this.x, this.y + this.radius * 3, this.radius, 0, Math.PI); // Bottom arc
+    ctx.lineTo(this.x - this.radius, this.y);
+    
+    // Gradient fill
+    const gradient = ctx.createLinearGradient(this.x, this.y, this.x, this.y + this.radius * 4);
+    gradient.addColorStop(0, '#fff'); // White tip
+    gradient.addColorStop(0.3, this.color); // Core color
+    gradient.addColorStop(1, 'transparent'); // Fade tail
+    
+    ctx.fillStyle = gradient;
     ctx.fill();
-    ctx.closePath();
+    
+    ctx.restore();
   }
 }

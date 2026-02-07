@@ -20,6 +20,12 @@ export class Player {
   doubleShot: boolean = false; // Buff: Adds a second plane/gun
   attackSpeedBuff: number = 1;
   slowDebuffTimer: number = 0;
+  
+  // Item Effects
+  shieldCount: number = 0;
+  invincibleTimer: number = 0;
+  weaponBoostTimer: number = 0;
+  hitCooldown: number = 0; // Cooldown after taking damage (iframes)
 
   constructor(game: Game) {
     this.game = game;
@@ -46,6 +52,14 @@ export class Player {
         currentFireInterval *= 2; // Fire 2x slower
     }
 
+    // Handle Item Buffs
+    if (this.invincibleTimer > 0) this.invincibleTimer--;
+    if (this.hitCooldown > 0) this.hitCooldown--;
+    if (this.weaponBoostTimer > 0) {
+      this.weaponBoostTimer--;
+      currentFireInterval /= 2; // 2x Fire Rate
+    }
+
     // Auto shoot
     if (this.fireTimer <= 0) {
       this.shoot();
@@ -56,11 +70,32 @@ export class Player {
   }
 
   takeDamage(amount: number) {
+      // User requested HP deduction even during invincible state (which is now just collision immunity)
+      // if (this.invincibleTimer > 0) return; 
+
+      if (this.shieldCount > 0) {
+        this.shieldCount--;
+        this.activateInvincibility(GameConfig.ITEM_DURATION_INVINCIBLE); // 5 seconds invincibility after shield break
+        this.game.soundManager.playShieldBreak(); 
+        return;
+      }
+
       this.hp -= amount;
       if (this.hp <= 0) {
           this.hp = 0;
       }
-      // TODO: Play damage sound?
+  }
+
+  activateShield() {
+    this.shieldCount++;
+  }
+
+  activateWeaponBoost() {
+    this.weaponBoostTimer = GameConfig.ITEM_DURATION_WEAPON_BOOST; // 10 seconds at 60fps
+  }
+
+  activateInvincibility(frames: number) {
+    this.invincibleTimer = frames;
   }
 
   heal(amount: number) {
@@ -75,6 +110,28 @@ export class Player {
 
   shoot() {
     this.game.soundManager.playShoot();
+    
+    // Weapon Boost: Spread Shot
+    if (this.weaponBoostTimer > 0) {
+       const boostDamage = this.damage * 2;
+       // Center
+       this.game.bullets.push(new Bullet(this.x, this.y - 20, boostDamage));
+       // Left Spread
+       const leftBullet = new Bullet(this.x - 10, this.y - 20, boostDamage);
+       leftBullet.vx = -1;
+       this.game.bullets.push(leftBullet);
+       // Right Spread
+       const rightBullet = new Bullet(this.x + 10, this.y - 20, boostDamage);
+       rightBullet.vx = 1;
+       this.game.bullets.push(rightBullet);
+       
+       if (this.doubleShot) {
+         this.game.bullets.push(new Bullet(this.x - 20, this.y - 20, boostDamage));
+         this.game.bullets.push(new Bullet(this.x + 20, this.y - 20, boostDamage));
+       }
+       return;
+    }
+
     if (this.doubleShot) {
         this.game.bullets.push(new Bullet(this.x - 10, this.y - 20, this.damage));
         this.game.bullets.push(new Bullet(this.x + 10, this.y - 20, this.damage));
@@ -91,21 +148,73 @@ export class Player {
     this.attackSpeedBuff *= 1.2; // Increase speed by 20%
   }
 
-  increasePower() {
-    this.damage += 2; // Increase damage by 2
+  increasePower(amount: number = 2) {
+    this.damage += amount; 
   }
 
   draw(ctx: CanvasRenderingContext2D) {
     ctx.save();
     ctx.translate(this.x, this.y);
+    
+    // Shield Visual
+    if (this.shieldCount > 0) {
+      ctx.beginPath();
+      ctx.arc(0, 0, this.width / 2 + 10, 0, Math.PI * 2);
+      ctx.strokeStyle = '#00FFFF';
+      ctx.lineWidth = 2 + (this.shieldCount - 1); // Thicker for more shields
+      ctx.stroke();
+      ctx.fillStyle = 'rgba(0, 255, 255, 0.2)';
+      ctx.fill();
+    }
+
+    // Invincible/Hit Visual (Blinking)
+    if (this.invincibleTimer > 0 || this.hitCooldown > 0) {
+       // Blink every 10 frames
+       const timer = this.invincibleTimer > 0 ? this.invincibleTimer : this.hitCooldown;
+       if (Math.floor(timer / 10) % 2 === 0) {
+         ctx.globalAlpha = 0.5;
+       }
+    }
+
+    if (this.invincibleTimer > 0) {
+       // Golden glow
+       ctx.shadowBlur = 20;
+       ctx.shadowColor = '#FFD700';
+    }
+
+    // Debuff Visuals - Purple Fog
+    if (this.slowDebuffTimer > 0) {
+        // Draw purple fog/mist
+        const time = Date.now() / 200;
+        
+        // Create 3 layers of fog puffs
+        for(let i=0; i<3; i++) {
+             ctx.save();
+             // Orbiting movement
+             const angle = time + i * (Math.PI * 2 / 3);
+             const dist = 15 + Math.sin(time * 2 + i) * 5;
+             const px = Math.cos(angle) * dist;
+             const py = Math.sin(angle) * dist;
+             
+             ctx.translate(px, py);
+             
+             const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, 20);
+             gradient.addColorStop(0, 'rgba(138, 43, 226, 0.6)'); // BlueViolet
+             gradient.addColorStop(1, 'rgba(75, 0, 130, 0)'); // Indigo transparent
+             
+             ctx.fillStyle = gradient;
+             ctx.beginPath();
+             ctx.arc(0, 0, 20, 0, Math.PI * 2);
+             ctx.fill();
+             
+             ctx.restore();
+        }
+    }
 
     // Draw Plane Image
-    // Ensure image is loaded? HTMLImageElement handles it usually, but if not loaded yet it draws nothing.
-    // SVG Data URI loads instantly usually.
     try {
         ctx.drawImage(Assets.PlayerPlane, -this.width / 2, -this.height / 2, this.width, this.height);
     } catch (e) {
-        // Fallback if image fails (unlikely)
         ctx.fillStyle = this.color;
         ctx.beginPath();
         ctx.moveTo(0, -this.height / 2);
@@ -121,25 +230,6 @@ export class Player {
         ctx.drawImage(Assets.PlayerPlane, -this.width - 10, 0, this.width/2, this.height/2);
         ctx.drawImage(Assets.PlayerPlane, this.width/2 + 10, 0, this.width/2, this.height/2);
         ctx.globalAlpha = 1.0;
-    }
-    
-    // Draw Debuff Visuals
-    if (this.slowDebuffTimer > 0) {
-        // Draw snail icon or blue/grey overlay
-        ctx.beginPath();
-        ctx.arc(0, 0, this.width/2 + 5, 0, Math.PI * 2);
-        ctx.strokeStyle = '#808080';
-        ctx.lineWidth = 3;
-        ctx.stroke();
-        
-        ctx.fillStyle = 'rgba(128, 128, 128, 0.3)';
-        ctx.fill();
-        
-        // Text
-        ctx.fillStyle = 'white';
-        ctx.font = '12px Arial';
-        ctx.textAlign = 'center';
-        ctx.fillText("SLOW", 0, -this.height/2 - 10);
     }
     
     ctx.restore();

@@ -12,10 +12,12 @@ export class Dragon {
   level: number = 1;
   headDead: boolean = false;
   centerX: number;
+  currentHeadX: number; // For smooth interpolation
   
   constructor(game: Game) {
     this.game = game;
     this.centerX = game.width / 2;
+    this.currentHeadX = this.centerX;
     this.init(1);
   }
 
@@ -25,10 +27,14 @@ export class Dragon {
     this.path = [];
     this.headDead = false;
     this.speed = GameConfig.DRAGON_START_SPEED + (level * GameConfig.DRAGON_SPEED_INC_PER_LEVEL);
+    if (this.speed > GameConfig.DRAGON_MAX_SPEED) {
+        this.speed = GameConfig.DRAGON_MAX_SPEED;
+    }
     
     // Initialize head position above screen
     let startX = this.centerX;
     let startY = -100;
+    this.currentHeadX = startX;
     
     // Create Head
     // Exponential HP: Base * Factor^(Level-1)
@@ -91,8 +97,20 @@ export class Dragon {
     // Add a slow drift to the center point if single dragon, or just rely on the complex wave
     // For now, complex wave is usually enough.
     
-    const headX = this.centerX + wave1 + wave2;
-    const clampedHeadX = Math.max(50, Math.min(this.game.width - 50, headX));
+    const targetHeadX = this.centerX + wave1 + wave2;
+    
+    // Smooth movement / Limit lateral speed
+    // Max lateral movement per frame (e.g., 5 pixels)
+    const MAX_LATERAL_SPEED = 3 + (this.level * 0.1); 
+    const dx = targetHeadX - this.currentHeadX;
+    
+    if (Math.abs(dx) > MAX_LATERAL_SPEED) {
+        this.currentHeadX += Math.sign(dx) * MAX_LATERAL_SPEED;
+    } else {
+        this.currentHeadX = targetHeadX;
+    }
+
+    const clampedHeadX = Math.max(50, Math.min(this.game.width - 50, this.currentHeadX));
 
     const headY = this.path[0].y + this.speed;
 

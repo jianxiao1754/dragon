@@ -41,6 +41,36 @@ export class SoundManager {
 
   playExplosion() {
     if (this.ctx.state === 'suspended') this.ctx.resume();
+    
+    // Noise buffer for explosion
+    const bufferSize = this.ctx.sampleRate * 0.5; // 0.5 seconds
+    const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) {
+      data[i] = Math.random() * 2 - 1;
+    }
+
+    const noise = this.ctx.createBufferSource();
+    noise.buffer = buffer;
+
+    const noiseFilter = this.ctx.createBiquadFilter();
+    noiseFilter.type = 'lowpass';
+    noiseFilter.frequency.value = 1000;
+    noiseFilter.frequency.exponentialRampToValueAtTime(100, this.ctx.currentTime + 0.3);
+
+    const gain = this.ctx.createGain();
+    gain.gain.setValueAtTime(0.5, this.ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.5);
+
+    noise.connect(noiseFilter);
+    noiseFilter.connect(gain);
+    gain.connect(this.masterGain);
+
+    noise.start();
+  }
+
+  playShieldBreak() {
+    if (this.ctx.state === 'suspended') this.ctx.resume();
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
 
@@ -48,14 +78,31 @@ export class SoundManager {
     gain.connect(this.masterGain);
 
     osc.type = 'sawtooth';
-    osc.frequency.setValueAtTime(100, this.ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.3);
+    osc.frequency.setValueAtTime(800, this.ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(100, this.ctx.currentTime + 0.3);
 
     gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
     gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.3);
 
     osc.start();
     osc.stop(this.ctx.currentTime + 0.3);
+  }
+
+  playBomb() {
+    // Bomb is a bigger explosion
+    this.playExplosion();
+    // Add a sub-bass thump
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.connect(gain);
+    gain.connect(this.masterGain);
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(60, this.ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(10, this.ctx.currentTime + 0.8); // Longer rumble
+    gain.gain.setValueAtTime(0.8, this.ctx.currentTime); // Louder
+    gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.8);
+    osc.start();
+    osc.stop(this.ctx.currentTime + 0.8);
   }
 
   playPowerUp() {
@@ -104,16 +151,15 @@ export class SoundManager {
     osc.connect(gain);
     gain.connect(this.masterGain);
 
-    // Rising slide
     osc.type = 'sawtooth';
-    osc.frequency.setValueAtTime(400, this.ctx.currentTime); 
-    osc.frequency.linearRampToValueAtTime(1200, this.ctx.currentTime + 0.2);
+    osc.frequency.setValueAtTime(220, this.ctx.currentTime);
+    osc.frequency.linearRampToValueAtTime(880, this.ctx.currentTime + 0.1);
     
     gain.gain.setValueAtTime(0.1, this.ctx.currentTime);
-    gain.gain.linearRampToValueAtTime(0, this.ctx.currentTime + 0.2);
+    gain.gain.linearRampToValueAtTime(0, this.ctx.currentTime + 0.1);
 
     osc.start();
-    osc.stop(this.ctx.currentTime + 0.2);
+    osc.stop(this.ctx.currentTime + 0.1);
   }
 
   playBuffAttackPower() {
